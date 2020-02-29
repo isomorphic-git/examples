@@ -37,11 +37,22 @@ import * as promises from './fs';
 // typescript style
 import * as RNFS from 'react-native-fs';
 
-const readDir = async () => {
-  const files = await promises.readDir(RNFS.DocumentDirectoryPath);
-  console.log(files);
-  Alert.alert('readDir', files.join(', '));
+const readdir = async () => {
+  try {
+    const files = await promises.readdir(RNFS.DocumentDirectoryPath);
+    Alert.alert('readDir', files.join(', '));
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
 };
+
+const mkdir = async () => {
+  try {
+    await promises.mkdir(RNFS.DocumentDirectoryPath + '/ReactNativeDevBundle.js');
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
 
 const getRemoteInfo = async () => {
   const info = await git.getRemoteInfo({
@@ -74,7 +85,10 @@ const App = () => {
                 title="Test getRemoteInfo"
                 onPress={() => getRemoteInfo()}
               />
-              <Button title="Test readDir" onPress={() => readDir()} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Test mkdir" onPress={() => mkdir()} />
+              <Button title="Test readDir" onPress={() => readdir()} />
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Step One</Text>
