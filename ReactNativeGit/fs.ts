@@ -87,14 +87,7 @@ export const writeFile = async (path: string, content: string | Uint8Array, opts
     content = Buffer.from(content).toString('base64')
   }
 
-  try {
-    await RNFS.writeFile(path, content as string, encoding)
-  } catch (err) {
-    Alert.alert('YOU GUESSED IT', err.message)
-    Alert.alert('YOU GUESSED IT', encoding)
-    if (err.message.includes('string.charCodeAt') && encoding === 'utf8') {
-    }
-  }
+  await RNFS.writeFile(path, content as string, encoding)
 }
 
 export const stat = async (path: string) => {
