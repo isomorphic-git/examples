@@ -23,6 +23,7 @@ const ENOTEMPTY = Err("ENOTEMPTY");
 
 export const readdir = async (path: string) => {
   try {
+   console.log('readdir', path);
     return await RNFS.readdir(path);
   } catch (err) {
     switch (err.message) {
@@ -39,47 +40,70 @@ export const readdir = async (path: string) => {
 };
 
 export const mkdir = async (path: string) => {
-  Alert.alert('mkdir', path)
+ console.log('mkdir', path)
   return RNFS.mkdir(path)
 }
 
 export const readFile = async (path: string, opts?: string | { [key: string]: string }) => {
+ console.log('readFile', path + '\n\n' + JSON.stringify(opts))
   let encoding
   let binary = false
   if (typeof opts === 'string') {
     encoding = opts
   } else if (typeof opts === 'object') {
     encoding = opts.encoding
-  } else {
+  }
+  if (!encoding) {
     encoding = 'base64'
     binary = true
   }
-  let result: string | Buffer = await RNFS.readFile(path, encoding)
-  if (binary) {
-    result = Buffer.from(result, 'base64')
+  console.log('encoding', encoding)
+  try {
+    let result: string | Uint8Array = await RNFS.readFile(path, encoding)
+    if (binary) {
+      result = Buffer.from(result, 'base64')
+    }
+    console.log('result', result)
+    return result
+  } catch (err) {
+    if (err.message.include('string.charCodeAt') && encoding === 'utf8') {
+      Alert.alert('YOU GUESSED IT')
+    }
   }
-  return result
 }
 
-export const writeFile = async (path: string, content: string | Buffer, opts?: string | { [key: string]: string }) => {
+export const writeFile = async (path: string, content: string | Uint8Array, opts?: string | { [key: string]: string }) => {
   let encoding
   if (typeof opts === 'string') {
     encoding = opts
   } else if (typeof opts === 'object') {
     encoding = opts.encoding
-  } else if (typeof content === 'string') {
-    encoding = 'utf8'
-  } else if (Buffer.isBuffer(content)) {
-    encoding = 'base64'
-    content = content.toString('base64')
   }
 
-  await RNFS.writeFile(path, content as string, encoding)
+  if (typeof content === 'string') {
+    encoding = encoding || 'utf8'
+  } else {
+    encoding = 'base64'
+    content = Buffer.from(content).toString('base64')
+  }
+
+  try {
+    await RNFS.writeFile(path, content as string, encoding)
+  } catch (err) {
+    Alert.alert('YOU GUESSED IT', err.message)
+    Alert.alert('YOU GUESSED IT', encoding)
+    if (err.message.includes('string.charCodeAt') && encoding === 'utf8') {
+    }
+  }
 }
 
 export const stat = async (path: string) => {
   try {
-    return await RNFS.stat(path);
+   console.log('stat', path)
+    const r = await RNFS.stat(path);
+    // @ts-ignore
+    r.isSymbolicLink = () => false;
+    return r
   } catch (err) {
     switch (err.message) {
       case 'File does not exist': {
@@ -90,10 +114,10 @@ export const stat = async (path: string) => {
     }
   }
 }
+export const lstat = stat;
 
-export const unlink = async () => void 0;
-export const rmdir = async () => void 0;
-export const lstat = async () => void 0;
-export const readlink = async () => void 0;
-export const symlink = async () => void 0;
-export const chmod = async () => void 0;
+export const unlink = async () => { throw new Error('not implemented yet sory') };
+export const rmdir = async () => { throw new Error('not implemented yet sory') };
+export const readlink = async () => { throw new Error('not implemented yet sory') };
+export const symlink = async () => { throw new Error('not implemented yet sory') };
+export const chmod = async () => { throw new Error('not implemented yet sory') };
