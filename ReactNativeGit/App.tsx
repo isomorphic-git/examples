@@ -27,6 +27,7 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+
 import './patch-FileReader';
 
 import git from 'isomorphic-git/index.umd.min.js';
@@ -49,6 +50,23 @@ const readdir = async () => {
 const mkdir = async () => {
   try {
     await promises.mkdir(RNFS.DocumentDirectoryPath + '/ReactNativeDevBundle.js');
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const readFile = async () => {
+  try {
+    const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/test.txt', 'base64');
+    Alert.alert('readFile', content as string)
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const writeFile = async () => {
+  try {
+    await promises.writeFile(RNFS.DocumentDirectoryPath + '/test.txt', 'Hello\nWorld\n', 'utf8');
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
   }
@@ -87,8 +105,12 @@ const App = () => {
               />
             </View>
             <View style={styles.buttonContainer}>
-              <Button title="Test mkdir" onPress={() => mkdir()} />
               <Button title="Test readDir" onPress={() => readdir()} />
+              <Button title="Test mkdir" onPress={() => mkdir()} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Test readFile" onPress={() => readFile()} />
+              <Button title="Test writeFile" onPress={() => writeFile()} />
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Step One</Text>

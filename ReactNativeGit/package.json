@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "buffer": "^5.4.3",
     "isomorphic-git": "^1.1.2",
     "react": "16.9.0",
     "react-native": "0.61.5",
