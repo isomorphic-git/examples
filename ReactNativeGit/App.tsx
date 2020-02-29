@@ -30,17 +30,20 @@ import {
 
 import './patch-FileReader';
 
-import git from 'isomorphic-git/index.umd.min.js';
+import git, { PromiseFsClient } from 'isomorphic-git/index.umd.min.js';
 import http from 'isomorphic-git/http/web/index.js';
 
 import * as promises from './fs';
+
+// @ts-ignore
+const fs: PromiseFsClient = { promises }
 
 // typescript style
 import * as RNFS from 'react-native-fs';
 
 const readdir = async () => {
   try {
-    const files = await promises.readdir(RNFS.DocumentDirectoryPath);
+    const files = await promises.readdir(RNFS.DocumentDirectoryPath + '/repo/.git');
     Alert.alert('readDir', files.join(', '));
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
@@ -57,7 +60,7 @@ const mkdir = async () => {
 
 const readFile = async () => {
   try {
-    const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/test.txt', 'base64');
+    const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/repo/.git/config', 'utf8');
     Alert.alert('readFile', content as string)
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
@@ -69,6 +72,24 @@ const writeFile = async () => {
     await promises.writeFile(RNFS.DocumentDirectoryPath + '/test.txt', 'Hello\nWorld\n', 'utf8');
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const stat = async () => {
+  try {
+    let stats = await promises.stat(RNFS.DocumentDirectoryPath + '/test.txt');
+    Alert.alert('stat', JSON.stringify(stats, null, 2))
+  } catch (err) {
+    Alert.alert(err.code, `'${err.message}'` + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const init = async () => {
+  try {
+    let stats = await git.init({ fs, dir: RNFS.DocumentDirectoryPath + '/repo' });
+    Alert.alert('stat', JSON.stringify(stats, null, 2))
+  } catch (err) {
+    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
 }
 
@@ -111,6 +132,10 @@ const App = () => {
             <View style={styles.buttonContainer}>
               <Button title="Test readFile" onPress={() => readFile()} />
               <Button title="Test writeFile" onPress={() => writeFile()} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Test stat" onPress={() => stat()} />
+              <Button title="Test init" onPress={() => init()} />
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Step One</Text>

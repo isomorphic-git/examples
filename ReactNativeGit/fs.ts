@@ -1,5 +1,6 @@
 import * as RNFS from 'react-native-fs';
 import { Buffer } from 'buffer';
+import { Alert } from 'react-native';
 
 function Err(name: string) {
   return class extends Error {
@@ -38,6 +39,7 @@ export const readdir = async (path: string) => {
 };
 
 export const mkdir = async (path: string) => {
+  Alert.alert('mkdir', path)
   return RNFS.mkdir(path)
 }
 
@@ -75,3 +77,23 @@ export const writeFile = async (path: string, content: string | Buffer, opts?: s
   await RNFS.writeFile(path, content as string, encoding)
 }
 
+export const stat = async (path: string) => {
+  try {
+    return await RNFS.stat(path);
+  } catch (err) {
+    switch (err.message) {
+      case 'File does not exist': {
+        throw new ENOENT(path)
+      }
+      default:
+        throw err
+    }
+  }
+}
+
+export const unlink = async () => void 0;
+export const rmdir = async () => void 0;
+export const lstat = async () => void 0;
+export const readlink = async () => void 0;
+export const symlink = async () => void 0;
+export const chmod = async () => void 0;
