@@ -18,6 +18,9 @@ import {
   View,
   Text,
   StatusBar,
+  Platform,
+  ProgressBarAndroid,
+  ProgressViewIOS
 } from 'react-native';
 
 import {
@@ -27,81 +30,32 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-import { Buffer } from 'buffer';
+declare var global: {HermesInternal: null | {}};
+
+// BEGIN OF INTERESTING ADDITIONS
 
 import './patch-FileReader';
+
+import { DocumentDirectoryPath } from 'react-native-fs';
 
 import git, { PromiseFsClient } from 'isomorphic-git/index.umd.min.js';
 import http from 'isomorphic-git/http/web/index.js';
 
 import * as promises from './fs';
 
-// @ts-ignore
 const fs: PromiseFsClient = { promises }
 
-// typescript style
-import * as RNFS from 'react-native-fs';
-
-const readdir = async () => {
+// This is a useful first smoke test, because it doesn't rely on `fs` or `http`
+const hashBlob = async () => {
   try {
-    const files = await promises.readdir(RNFS.DocumentDirectoryPath + '/repo/.git/objects/pack');
-    Alert.alert('readDir', files.join(', '));
+    const { oid } = await git.hashBlob({ object: 'Hello\nWorld\n' });
+    Alert.alert('hashBlob', oid)
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
-  }
-};
-
-const mkdir = async () => {
-  try {
-    await promises.mkdir(RNFS.DocumentDirectoryPath + '/ReactNativeDevBundle.js');
-  } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
 }
 
-const readFile = async () => {
-  try {
-    // const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/repo/test.txt', 'utf8');
-    const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/repo/.git/config', 'utf8');
-    Alert.alert('readFile', content as string)
-  } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
-  }
-}
-
-const writeFile = async () => {
-  try {
-    await promises.writeFile(RNFS.DocumentDirectoryPath + '/repo/test.txt', 'Hello\nWorld\n', 'utf8');
-  } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
-  }
-}
-
-const unlink = async () => {
-  try {
-    await promises.unlink(RNFS.DocumentDirectoryPath + '/repo/test.txt')
-  } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
-  }
-}
-
-const rmdir = async () => {
-  try {
-    await promises.rmdir(RNFS.DocumentDirectoryPath + '/repo')
-  } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
-  }
-}
-
-const stat = async () => {
-  try {
-    let stats = await promises.stat(RNFS.DocumentDirectoryPath + '/repo/test.txt');
-    Alert.alert('stat', JSON.stringify(stats, null, 2))
-  } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + JSON.stringify(err, null, 2))
-  }
-}
-
+// This is a good 2nd smoke test, because it only relies on `http`
 const getRemoteInfo = async () => {
   const info = await git.getRemoteInfo({
     http,
@@ -112,9 +66,69 @@ const getRemoteInfo = async () => {
   }
 };
 
+const mkdir = async () => {
+  try {
+    await promises.mkdir(DocumentDirectoryPath + '/repo');
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const readdir = async () => {
+  try {
+    const files = await promises.readdir(DocumentDirectoryPath + '/repo');
+    Alert.alert('readDir', files.join(', '));
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+};
+
+const rmdir = async () => {
+  try {
+    await promises.rmdir(DocumentDirectoryPath + '/repo')
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const writeFile = async () => {
+  try {
+    await promises.writeFile(DocumentDirectoryPath + '/repo/test.txt', 'Hello\nWorld\n', 'utf8');
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const readFile = async () => {
+  try {
+    const content = await promises.readFile(DocumentDirectoryPath + '/repo/test.txt', 'utf8');
+    Alert.alert('readFile', content as string)
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const unlink = async () => {
+  try {
+    await promises.unlink(DocumentDirectoryPath + '/repo/test.txt')
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const stat = async () => {
+  try {
+    let stats = await promises.stat(DocumentDirectoryPath + '/repo/test.txt');
+    Alert.alert('stat', JSON.stringify(stats, null, 2))
+  } catch (err) {
+    Alert.alert(err.code, `'${err.message}'` + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+// This is a good 3rd test, because it only uses stat, mkdir, and writeFile
 const init = async () => {
   try {
-    await git.init({ fs, dir: RNFS.DocumentDirectoryPath + '/repo' });
+    await git.init({ fs, dir: DocumentDirectoryPath + '/repo' });
   } catch (err) {
     Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
@@ -122,7 +136,7 @@ const init = async () => {
 
 const add = async () => {
   try {
-    await git.add({ fs, dir: RNFS.DocumentDirectoryPath + '/repo', filepath: 'test.txt' });
+    await git.add({ fs, dir: DocumentDirectoryPath + '/repo', filepath: 'test.txt' });
   } catch (err) {
     Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
@@ -130,17 +144,8 @@ const add = async () => {
 
 const listFiles = async () => {
   try {
-    const files = await git.listFiles({ fs, dir: RNFS.DocumentDirectoryPath + '/repo' });
+    const files = await git.listFiles({ fs, dir: DocumentDirectoryPath + '/repo' });
     Alert.alert('listFiles', files.join(', '))
-  } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
-  }
-}
-
-const hashBlob = async () => {
-  try {
-    const { oid } = await git.hashBlob({ object: 'Hello\nWorld\n' });
-    Alert.alert('hashBlob', oid)
   } catch (err) {
     Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
@@ -150,8 +155,8 @@ const commit = async () => {
   try {
     const oid = await git.commit({
       fs,
-      dir: RNFS.DocumentDirectoryPath + '/repo',
-      message: 'initial commit',
+      dir: DocumentDirectoryPath + '/repo',
+      message: 'a commit in react native',
       author: {
         name: 'React Native'
       }
@@ -166,7 +171,7 @@ const log = async () => {
   try {
     const commits = await git.log({
       fs,
-      dir: RNFS.DocumentDirectoryPath + '/repo'
+      dir: DocumentDirectoryPath + '/repo'
     });
     Alert.alert('hashBlob', commits.map(c => `${c.oid.slice(0, 7)} ${c.commit.message}`).join('\n'))
   } catch (err) {
@@ -174,24 +179,34 @@ const log = async () => {
   }
 }
 
-const clone = async () => {
+// This is last, because clone pretty much uses every single function. (Maybe not unlink / rmdir.)
+const clone = async (setPhase: any, setProgress: any) => {
   try {
     await git.clone({
       fs,
       http,
-      dir: RNFS.DocumentDirectoryPath + '/repo',
-      url: 'https://github.com/isomorphic-git/examples.git'
+      dir: DocumentDirectoryPath + '/repo',
+      url: 'https://github.com/isomorphic-git/examples.git',
+      onProgress({ phase, loaded, total}) {
+        console.log(phase, loaded, total)
+        setPhase(phase)
+        if (total) {
+          setProgress(loaded / total)
+        }
+      }
     });
-    Alert.alert('clone', 'complete?')
+    setPhase('')
+    setProgress(1)
+    Alert.alert('clone', 'complete')
   } catch (err) {
     Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
 }
 
-
-declare var global: {HermesInternal: null | {}};
-
 const App = () => {
+  const [progress, setProgress] = React.useState(0)
+  const [phase, setPhase] = React.useState('')
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -207,22 +222,22 @@ const App = () => {
           <View style={styles.body}>
             <View style={styles.buttonContainer}>
               <Button
-                title="Test getRemoteInfo"
-                onPress={() => getRemoteInfo()}
-              />
-              <Button
                 title="Test hashBlob"
                 onPress={() => hashBlob()}
               />
+              <Button
+                title="Test getRemoteInfo"
+                onPress={() => getRemoteInfo()}
+              />
             </View>
             <View style={styles.buttonContainer}>
-              <Button title="Test readDir" onPress={() => readdir()} />
               <Button title="Test mkdir" onPress={() => mkdir()} />
+              <Button title="Test readdir" onPress={() => readdir()} />
               <Button title="Test rmdir" onPress={() => rmdir()} />
             </View>
             <View style={styles.buttonContainer}>
-              <Button title="Test readFile" onPress={() => readFile()} />
               <Button title="Test writeFile" onPress={() => writeFile()} />
+              <Button title="Test readFile" onPress={() => readFile()} />
               <Button title="Test unlink" onPress={() => unlink()} />
             </View>
             <View style={styles.buttonContainer}>
@@ -236,8 +251,17 @@ const App = () => {
             <View style={styles.buttonContainer}>
               <Button title="Test commit" onPress={() => commit()} />
               <Button title="Test log" onPress={() => log()} />
-              <Button title="Test clone" onPress={() => clone()} />
             </View>
+
+            <View style={styles.buttonContainer}>
+              <Button title="Test clone" onPress={() => clone(setPhase, setProgress)} />
+              <Text>{phase}</Text>
+              { Platform.OS === 'android'
+                ? <ProgressBarAndroid styleAttr="Horizontal" style={styles.progressBar} progress={progress} indeterminate={false} />
+                : <ProgressViewIOS progress={progress} style={styles.progressBar} />
+              }
+            </View>
+            {/* END OF INTERESTING ADDITIONS */}
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Step One</Text>
               <Text style={styles.sectionDescription}>
@@ -314,6 +338,9 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     textAlign: 'right',
   },
+  progressBar: {
+    flex: 1,
+  }
 });
 
 export default App;

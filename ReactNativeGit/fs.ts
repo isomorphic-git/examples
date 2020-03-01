@@ -1,6 +1,5 @@
 import * as RNFS from 'react-native-fs';
 import { Buffer } from 'buffer';
-import { Alert } from 'react-native';
 
 function Err(name: string) {
   return class extends Error {
@@ -16,14 +15,13 @@ function Err(name: string) {
   };
 }
 
-const EEXIST = Err("EEXIST");
+const EEXIST = Err("EEXIST"); // <-- Unused because RNFS's mkdir never throws
 const ENOENT = Err("ENOENT");
 const ENOTDIR = Err("ENOTDIR");
-const ENOTEMPTY = Err("ENOTEMPTY");
+const ENOTEMPTY = Err("ENOTEMPTY"); // <-- Unused because RNFS's unlink is recursive by default
 
 export const readdir = async (path: string) => {
   try {
-   console.log('readdir', path);
     return await RNFS.readdir(path);
   } catch (err) {
     switch (err.message) {
@@ -40,32 +38,30 @@ export const readdir = async (path: string) => {
 };
 
 export const mkdir = async (path: string) => {
- console.log('mkdir', path)
   return RNFS.mkdir(path)
 }
 
 export const readFile = async (path: string, opts?: string | { [key: string]: string }) => {
- console.log('readFile', path + '\n\n' + JSON.stringify(opts))
   let encoding
-  let binary = false
+
   if (typeof opts === 'string') {
     encoding = opts
   } else if (typeof opts === 'object') {
     encoding = opts.encoding
   }
+
+  let result: string | Uint8Array = await RNFS.readFile(path, encoding || 'base64')
+
   if (!encoding) {
-    encoding = 'base64'
-    binary = true
-  }
-  let result: string | Uint8Array = await RNFS.readFile(path, encoding)
-  if (binary) {
     result = Buffer.from(result, 'base64')
   }
+
   return result
 }
 
 export const writeFile = async (path: string, content: string | Uint8Array, opts?: string | { [key: string]: string }) => {
   let encoding
+
   if (typeof opts === 'string') {
     encoding = opts
   } else if (typeof opts === 'object') {
@@ -84,8 +80,9 @@ export const writeFile = async (path: string, content: string | Uint8Array, opts
 
 export const stat = async (path: string) => {
   try {
-   console.log('stat', path)
     const r = await RNFS.stat(path);
+    // we monkeypatch the result with a `isSymbolicLink` method because isomorphic-git needs it.
+    // Since RNFS doesn't appear to support symlinks at all, we'll just always return false.
     // @ts-ignore
     r.isSymbolicLink = () => false;
     return r
@@ -99,6 +96,8 @@ export const stat = async (path: string) => {
     }
   }
 }
+
+// Since there are no symbolic links, lstat and stat are equivalent
 export const lstat = stat;
 
 export const unlink = async (path: string) => {
@@ -115,8 +114,13 @@ export const unlink = async (path: string) => {
   }
 }
 
+// RNFS doesn't have a separate rmdir method, so we can use unlink for deleting directories too
 export const rmdir = unlink;
 
-export const readlink = async () => { throw new Error('not implemented yet sory') };
-export const symlink = async () => { throw new Error('not implemented yet sory') };
-export const chmod = async () => { throw new Error('not implemented yet sory') };
+// These are optional, which is good because there is no equivalent in RNFS
+export const readlink = async () => { throw new Error('not implemented') };
+export const symlink = async () => { throw new Error('not implemented') };
+
+// Technically we could pull this off by using `readFile` + `writeFile` with the `mode` option
+// However, it's optional, because isomorphic-git will do exactly that (a readFile and a writeFile with the new mode)
+export const chmod = async () => { throw new Error('not implemented') };
