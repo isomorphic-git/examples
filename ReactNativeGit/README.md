@@ -1,4 +1,4 @@
-# React Native Example (WIP)
+# React Native Example
 
 This project was created with `npx react-native init ReactNativeGit`.
 
@@ -26,9 +26,10 @@ There must be some kind of bug in React Native's implementation of `fetch` becau
 
 ## Wrapping `react-native-fs`
 
-This is the crux of the challenge. The `react-native-fs` librar has a _very_ different API from the
+This is the crux of the challenge. The `react-native-fs` library has a _very_ different API from the
 node.js `fs` API subset that `isomorphic-git` uses. Therefore, we need to wrap it! See `./fs.ts`
 
 Alternatively, it looks like there is a `react-native-level-fs` library that implements a more normal `fs` API,
 but that uses LevelDB and using the actual device file system would be prefereable. Plus it might not be 100% compatible with isomorphic-git anyway, so if we're going to need a wrapper, let's wrap the much-more-popular and preferable solution.
 
+We did it! Note that @crutchcorn is hoping to upstream some of these improvements to `react-native-fs` directly (including symlink support!) so we'll keep updating this repo as fewer hacks are required.
