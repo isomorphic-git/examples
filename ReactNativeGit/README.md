@@ -24,6 +24,12 @@ So even though they say watchman is optional, it's basically necessary at least 
 There must be some kind of bug in React Native's implementation of `fetch` because we need to monkeypatch the
 `FileReader` global. See `./patch-FileReader.js` which has some hackery from Stack Overflow.
 
+For some reason, right now it appears that you have to import `isomorphic-git/index.umd.min.js`.
+Importing `isomorphic-git`, `isomorphic-git/index.cjs`, or `isomorphic-git/index.js` doesn't work.
+I'm not sure why. Maybe because of lingering Node-isms like Buffer in some of the dependencies?
+Sadly, `index.umd.min.js` doesn't have a `.d.ts` file, because I just hadn't thought of that.
+So right now I've copy pasted the type definition into `declarations.d.ts`.
+
 ## Wrapping `react-native-fs`
 
 This is the crux of the challenge. The `react-native-fs` library has a _very_ different API from the
