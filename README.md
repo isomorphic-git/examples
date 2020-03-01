@@ -15,4 +15,4 @@ Then `cd` into one of the examples and follow the README in there.
 ## Current Examples
 
 - `typescript-node` - a simple TypeScript + Node.js application
-- `react-native` - coming soon!
+- `ReactNativeGit` - a React Native application using `react-native-fs` (and a fair amount of wrapper code)
