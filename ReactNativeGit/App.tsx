@@ -44,7 +44,7 @@ import * as RNFS from 'react-native-fs';
 
 const readdir = async () => {
   try {
-    const files = await promises.readdir(RNFS.DocumentDirectoryPath + '/repo/.git/objects');
+    const files = await promises.readdir(RNFS.DocumentDirectoryPath + '/repo/.git/objects/pack');
     Alert.alert('readDir', files.join(', '));
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
@@ -61,7 +61,8 @@ const mkdir = async () => {
 
 const readFile = async () => {
   try {
-    const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/repo/test.txt', 'utf8');
+    // const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/repo/test.txt', 'utf8');
+    const content = await promises.readFile(RNFS.DocumentDirectoryPath + '/repo/.git/config', 'utf8');
     Alert.alert('readFile', content as string)
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
@@ -71,6 +72,22 @@ const readFile = async () => {
 const writeFile = async () => {
   try {
     await promises.writeFile(RNFS.DocumentDirectoryPath + '/repo/test.txt', 'Hello\nWorld\n', 'utf8');
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const unlink = async () => {
+  try {
+    await promises.unlink(RNFS.DocumentDirectoryPath + '/repo/test.txt')
+  } catch (err) {
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const rmdir = async () => {
+  try {
+    await promises.rmdir(RNFS.DocumentDirectoryPath + '/repo')
   } catch (err) {
     Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
   }
@@ -97,8 +114,7 @@ const getRemoteInfo = async () => {
 
 const init = async () => {
   try {
-    let stats = await git.init({ fs, dir: RNFS.DocumentDirectoryPath + '/repo' });
-    Alert.alert('stat', JSON.stringify(stats, null, 2))
+    await git.init({ fs, dir: RNFS.DocumentDirectoryPath + '/repo' });
   } catch (err) {
     Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
   }
@@ -130,6 +146,49 @@ const hashBlob = async () => {
   }
 }
 
+const commit = async () => {
+  try {
+    const oid = await git.commit({
+      fs,
+      dir: RNFS.DocumentDirectoryPath + '/repo',
+      message: 'initial commit',
+      author: {
+        name: 'React Native'
+      }
+    });
+    Alert.alert('commit', oid)
+  } catch (err) {
+    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const log = async () => {
+  try {
+    const commits = await git.log({
+      fs,
+      dir: RNFS.DocumentDirectoryPath + '/repo'
+    });
+    Alert.alert('hashBlob', commits.map(c => `${c.oid.slice(0, 7)} ${c.commit.message}`).join('\n'))
+  } catch (err) {
+    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+const clone = async () => {
+  try {
+    await git.clone({
+      fs,
+      http,
+      dir: RNFS.DocumentDirectoryPath + '/repo',
+      url: 'https://github.com/isomorphic-git/examples.git'
+    });
+    Alert.alert('clone', 'complete?')
+  } catch (err) {
+    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+  }
+}
+
+
 declare var global: {HermesInternal: null | {}};
 
 const App = () => {
@@ -159,10 +218,12 @@ const App = () => {
             <View style={styles.buttonContainer}>
               <Button title="Test readDir" onPress={() => readdir()} />
               <Button title="Test mkdir" onPress={() => mkdir()} />
+              <Button title="Test rmdir" onPress={() => rmdir()} />
             </View>
             <View style={styles.buttonContainer}>
               <Button title="Test readFile" onPress={() => readFile()} />
               <Button title="Test writeFile" onPress={() => writeFile()} />
+              <Button title="Test unlink" onPress={() => unlink()} />
             </View>
             <View style={styles.buttonContainer}>
               <Button title="Test stat" onPress={() => stat()} />
@@ -171,6 +232,11 @@ const App = () => {
             <View style={styles.buttonContainer}>
               <Button title="Test add" onPress={() => add()} />
               <Button title="Test listFiles" onPress={() => listFiles()} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Test commit" onPress={() => commit()} />
+              <Button title="Test log" onPress={() => log()} />
+              <Button title="Test clone" onPress={() => clone()} />
             </View>
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Step One</Text>

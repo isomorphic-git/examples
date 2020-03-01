@@ -57,19 +57,11 @@ export const readFile = async (path: string, opts?: string | { [key: string]: st
     encoding = 'base64'
     binary = true
   }
-  console.log('encoding', encoding)
-  try {
-    let result: string | Uint8Array = await RNFS.readFile(path, encoding)
-    if (binary) {
-      result = Buffer.from(result, 'base64')
-    }
-    console.log('result', result)
-    return result
-  } catch (err) {
-    if (err.message.include('string.charCodeAt') && encoding === 'utf8') {
-      Alert.alert('YOU GUESSED IT')
-    }
+  let result: string | Uint8Array = await RNFS.readFile(path, encoding)
+  if (binary) {
+    result = Buffer.from(result, 'base64')
   }
+  return result
 }
 
 export const writeFile = async (path: string, content: string | Uint8Array, opts?: string | { [key: string]: string }) => {
@@ -109,8 +101,22 @@ export const stat = async (path: string) => {
 }
 export const lstat = stat;
 
-export const unlink = async () => { throw new Error('not implemented yet sory') };
-export const rmdir = async () => { throw new Error('not implemented yet sory') };
+export const unlink = async (path: string) => {
+  try {
+    await RNFS.unlink(path)
+  } catch (err) {
+    switch (err.message) {
+      case 'File does not exist': {
+        throw new ENOENT(path)
+      }
+      default:
+        throw err
+    }
+  }
+}
+
+export const rmdir = unlink;
+
 export const readlink = async () => { throw new Error('not implemented yet sory') };
 export const symlink = async () => { throw new Error('not implemented yet sory') };
 export const chmod = async () => { throw new Error('not implemented yet sory') };
