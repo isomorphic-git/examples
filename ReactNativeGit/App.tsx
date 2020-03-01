@@ -20,7 +20,7 @@ import {
   StatusBar,
   Platform,
   ProgressBarAndroid,
-  ProgressViewIOS
+  ProgressViewIOS,
 } from 'react-native';
 
 import {
@@ -36,24 +36,31 @@ declare var global: {HermesInternal: null | {}};
 
 import './patch-FileReader';
 
-import { DocumentDirectoryPath } from 'react-native-fs';
+import {DocumentDirectoryPath} from 'react-native-fs';
 
-import git, { PromiseFsClient } from 'isomorphic-git/index.umd.min.js';
+import git, {PromiseFsClient} from 'isomorphic-git/index.umd.min.js';
 import http from 'isomorphic-git/http/web/index.js';
 
 import * as promises from './fs';
 
-const fs: PromiseFsClient = { promises }
+const fs: PromiseFsClient = {promises};
 
 // This is a useful first smoke test, because it doesn't rely on `fs` or `http`
 const hashBlob = async () => {
   try {
-    const { oid } = await git.hashBlob({ object: 'Hello\nWorld\n' });
-    Alert.alert('hashBlob', oid)
+    const {oid} = await git.hashBlob({object: 'Hello\nWorld\n'});
+    Alert.alert('hashBlob', oid);
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 // This is a good 2nd smoke test, because it only relies on `http`
 const getRemoteInfo = async () => {
@@ -62,7 +69,10 @@ const getRemoteInfo = async () => {
     url: 'https://github.com/isomorphic-git/isomorphic-git.git',
   });
   if (info && info.refs && info.refs.heads) {
-    Alert.alert('List of remote branches', Object.keys(info.refs.heads).join('\n'))
+    Alert.alert(
+      'List of remote branches',
+      Object.keys(info.refs.heads).join('\n'),
+    );
   }
 };
 
@@ -70,86 +80,124 @@ const mkdir = async () => {
   try {
     await promises.mkdir(DocumentDirectoryPath + '/repo');
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2));
   }
-}
+};
 
 const readdir = async () => {
   try {
     const files = await promises.readdir(DocumentDirectoryPath + '/repo');
     Alert.alert('readDir', files.join(', '));
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2));
   }
 };
 
 const rmdir = async () => {
   try {
-    await promises.rmdir(DocumentDirectoryPath + '/repo')
+    await promises.rmdir(DocumentDirectoryPath + '/repo');
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2));
   }
-}
+};
 
 const writeFile = async () => {
   try {
-    await promises.writeFile(DocumentDirectoryPath + '/repo/test.txt', 'Hello\nWorld\n', 'utf8');
+    await promises.writeFile(
+      DocumentDirectoryPath + '/repo/test.txt',
+      'Hello\nWorld\n',
+      'utf8',
+    );
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2));
   }
-}
+};
 
 const readFile = async () => {
   try {
-    const content = await promises.readFile(DocumentDirectoryPath + '/repo/test.txt', 'utf8');
-    Alert.alert('readFile', content as string)
+    const content = await promises.readFile(
+      DocumentDirectoryPath + '/repo/test.txt',
+      'utf8',
+    );
+    Alert.alert('readFile', content as string);
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2));
   }
-}
+};
 
 const unlink = async () => {
   try {
-    await promises.unlink(DocumentDirectoryPath + '/repo/test.txt')
+    await promises.unlink(DocumentDirectoryPath + '/repo/test.txt');
   } catch (err) {
-    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(err.code, err.message + '\n' + JSON.stringify(err, null, 2));
   }
-}
+};
 
 const stat = async () => {
   try {
     let stats = await promises.stat(DocumentDirectoryPath + '/repo/test.txt');
-    Alert.alert('stat', JSON.stringify(stats, null, 2))
+    Alert.alert('stat', JSON.stringify(stats, null, 2));
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` + '\n' + JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 // This is a good 3rd test, because it only uses stat, mkdir, and writeFile
 const init = async () => {
   try {
-    await git.init({ fs, dir: DocumentDirectoryPath + '/repo' });
+    await git.init({fs, dir: DocumentDirectoryPath + '/repo'});
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 const add = async () => {
   try {
-    await git.add({ fs, dir: DocumentDirectoryPath + '/repo', filepath: 'test.txt' });
+    await git.add({
+      fs,
+      dir: DocumentDirectoryPath + '/repo',
+      filepath: 'test.txt',
+    });
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 const listFiles = async () => {
   try {
-    const files = await git.listFiles({ fs, dir: DocumentDirectoryPath + '/repo' });
-    Alert.alert('listFiles', files.join(', '))
+    const files = await git.listFiles({
+      fs,
+      dir: DocumentDirectoryPath + '/repo',
+    });
+    Alert.alert('listFiles', files.join(', '));
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 const commit = async () => {
   try {
@@ -158,54 +206,99 @@ const commit = async () => {
       dir: DocumentDirectoryPath + '/repo',
       message: 'a commit in react native',
       author: {
-        name: 'React Native'
-      }
+        name: 'React Native',
+      },
     });
-    Alert.alert('commit', oid)
+    Alert.alert('commit', oid);
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 const log = async () => {
   try {
     const commits = await git.log({
       fs,
-      dir: DocumentDirectoryPath + '/repo'
+      dir: DocumentDirectoryPath + '/repo',
     });
-    Alert.alert('hashBlob', commits.map(c => `${c.oid.slice(0, 7)} ${c.commit.message}`).join('\n'))
+    Alert.alert(
+      'hashBlob',
+      commits.map(c => `${c.oid.slice(0, 7)} ${c.commit.message}`).join('\n'),
+    );
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
+
+// Note that since we're running isomorphic-git in the main thread, we're competing with React trying to update the UI.
+// In order to achieve smooth progress bars, we need to insert a little pause.
+// Curiously (perhaps a bug in isomorphic-git? I haven't figured that out yet) when these setTimeouts are added,
+// the 'Counting objects' and 'Receiving objects' phases were interleaved, as were
+// the 'Compressing objects' and 'Resolving deltas' phases. Since we can't show two progress phases simultaneously
+// on a single progress bar, and since they are perfectly in step anyway, we'll just whitelist certain phases.
+const phases: {[key: string]: boolean} = {
+  'Receiving objects': true,
+  'Resolving deltas': true,
+  'Analyzing workdir': true,
+  'Updating workdir': true,
+};
+
+const pauseToRender = () => new Promise(resolve => setTimeout(resolve, 0));
 
 // This is last, because clone pretty much uses every single function. (Maybe not unlink / rmdir.)
-const clone = async (setPhase: any, setProgress: any) => {
+const clone = async (setPhase: any, setLoaded: any, setTotal: any) => {
   try {
+    setPhase('Downloading');
+    setTotal(0);
     await git.clone({
       fs,
       http,
       dir: DocumentDirectoryPath + '/repo',
       url: 'https://github.com/isomorphic-git/examples.git',
-      onProgress({ phase, loaded, total}) {
-        console.log(phase, loaded, total)
-        setPhase(phase)
-        if (total) {
-          setProgress(loaded / total)
+      async onProgress({phase, loaded, total}) {
+        if (phases[phase]) {
+          console.log(phase, loaded, total);
+          setPhase(phase);
+          setLoaded(loaded);
+          setTotal(total || 0);
+          await pauseToRender();
         }
-      }
+      },
     });
-    setPhase('')
-    setProgress(1)
-    Alert.alert('clone', 'complete')
+    setPhase('Complete');
+    setLoaded(1);
+    setTotal(1);
+    Alert.alert('clone', 'complete');
   } catch (err) {
-    Alert.alert(err.code, `'${err.message}'` + '\n' + err.stack + '\n' + JSON.stringify(err, null, 2))
+    Alert.alert(
+      err.code,
+      `'${err.message}'` +
+        '\n' +
+        err.stack +
+        '\n' +
+        JSON.stringify(err, null, 2),
+    );
   }
-}
+};
 
 const App = () => {
-  const [progress, setProgress] = React.useState(0)
-  const [phase, setPhase] = React.useState('')
+  const [loaded, setLoaded] = React.useState(0);
+  const [total, setTotal] = React.useState(-1);
+  const [phase, setPhase] = React.useState('');
 
   return (
     <>
@@ -221,10 +314,7 @@ const App = () => {
           )}
           <View style={styles.body}>
             <View style={styles.buttonContainer}>
-              <Button
-                title="Test hashBlob"
-                onPress={() => hashBlob()}
-              />
+              <Button title="Test hashBlob" onPress={() => hashBlob()} />
               <Button
                 title="Test getRemoteInfo"
                 onPress={() => getRemoteInfo()}
@@ -254,12 +344,26 @@ const App = () => {
             </View>
 
             <View style={styles.buttonContainer}>
-              <Button title="Test clone" onPress={() => clone(setPhase, setProgress)} />
-              <Text>{phase}</Text>
-              { Platform.OS === 'android'
-                ? <ProgressBarAndroid styleAttr="Horizontal" style={styles.progressBar} progress={progress} indeterminate={false} />
-                : <ProgressViewIOS progress={progress} style={styles.progressBar} />
-              }
+              <Button
+                title="Test clone"
+                onPress={() => clone(setPhase, setLoaded, setTotal)}
+              />
+              <View style={styles.progressBar}>
+                <Text>{phase}</Text>
+                {Platform.OS === 'android' ? (
+                  <ProgressBarAndroid
+                    styleAttr="Horizontal"
+                    style={styles.progressBar}
+                    progress={total > 0 ? loaded / total : 0}
+                    indeterminate={!total}
+                  />
+                ) : (
+                  <ProgressViewIOS
+                    progress={total > 0 ? loaded / total : 0}
+                    style={styles.progressBar}
+                  />
+                )}
+              </View>
             </View>
             {/* END OF INTERESTING ADDITIONS */}
             <View style={styles.sectionContainer}>
@@ -340,7 +444,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     flex: 1,
-  }
+  },
 });
 
 export default App;
