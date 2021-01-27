@@ -8,9 +8,7 @@ FileReader.prototype.readAsArrayBuffer = function(blob) {
   this._error = null;
   const fr = new FileReader();
   fr.onloadend = () => {
-    const content = atob(
-      fr.result.substr('data:application/octet-stream;base64,'.length),
-    );
+    const content = atob(fr.result.replace(/data:[^;]+;base64,/, ""));
     const buffer = new ArrayBuffer(content.length);
     const view = new Uint8Array(buffer);
     view.set(Array.from(content).map(c => c.charCodeAt(0)));
